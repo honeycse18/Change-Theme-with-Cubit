@@ -1,49 +1,82 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'Business Logic Layer/theme_cubit.dart';
+import 'package:theme_project/Business%20Logic%20Layer/theme_cubit.dart';
+import 'package:theme_project/Helper/enum.dart';
 
 void main() {
-  runApp(BlocProvider<ThemeCubit>(
-    create: (context) => ThemeCubit()..setInitialTheme(),
-    child: MyApp(),
-  ));
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<ThemeCubit, ThemeState>(builder: (context, state) {
-      return MaterialApp(
-        theme: state.themeData,
-        home: const MyHomePage(),
-      );
-    });
+    return BlocProvider(
+      create: (context) => ThemeCubit(),
+      child: BlocBuilder<ThemeCubit, ThemeModeEnum>(
+        builder: (context, theme) {
+          return MaterialApp(
+            theme: _buildThemeData(theme),
+            home: MyHomePage(),
+          );
+        },
+      ),
+    );
+  }
+
+  ThemeData _buildThemeData(ThemeModeEnum mode) {
+    switch (mode) {
+      case ThemeModeEnum.light:
+        return ThemeData.light();
+      case ThemeModeEnum.dark:
+        return ThemeData.dark();
+      case ThemeModeEnum.reading:
+        return ThemeData(
+          primarySwatch: Colors.red,
+          brightness: Brightness.light,
+          scaffoldBackgroundColor: Colors.red[50],
+        );
+    }
   }
 }
 
 class MyHomePage extends StatelessWidget {
-  const MyHomePage({super.key});
-
   @override
   Widget build(BuildContext context) {
-    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-
     return Scaffold(
       appBar: AppBar(
-        title: Text('Flutter Demo'),
+        title: Text('Customize Theme'),
+        actions: [
+          PopupMenuButton<ThemeModeEnum>(
+            onSelected: (mode) {
+              BlocProvider.of<ThemeCubit>(context).setTheme(mode);
+            },
+            itemBuilder: (BuildContext context) =>
+                <PopupMenuEntry<ThemeModeEnum>>[
+              const PopupMenuItem<ThemeModeEnum>(
+                value: ThemeModeEnum.light,
+                child: Text('Light Theme'),
+              ),
+              const PopupMenuItem<ThemeModeEnum>(
+                value: ThemeModeEnum.dark,
+                child: Text('Dark Theme'),
+              ),
+              const PopupMenuItem<ThemeModeEnum>(
+                value: ThemeModeEnum.reading,
+                child: Text('Reading Theme'),
+              ),
+            ],
+          ),
+        ],
       ),
       body: Center(
-        child: ElevatedButton(
-            onPressed: () {
-              context.read<ThemeCubit>().toggleTheme(!isDarkMode);
-            },
-            child: Text(
-              isDarkMode ? 'Light Theme' : 'Dark Theme',
-              style: TextStyle(color: Colors.black),
-            )),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            Text(
+              'Welcome to Theme Project!',
+            ),
+          ],
+        ),
       ),
     );
   }
